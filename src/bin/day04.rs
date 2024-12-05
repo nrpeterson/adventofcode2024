@@ -61,20 +61,11 @@ fn part1(input: &str) -> usize {
     let rows = puzzle.len();
     let cols = puzzle[0].len();
 
-    let mut result = 0;
-
-    for i in 0..rows {
-        for j in 0..cols {
-            if puzzle[i][j] == 'X' {
-                for dir in DIRECTIONS {
-                    if is_xmas(&puzzle, i, j, dir) {
-                        result += 1;
-                    }
-                }
-            }
-        }
-    }
-    result
+    (0..rows).cartesian_product(0..cols)
+        .filter(|&(i, j)| puzzle[i][j] == 'X')
+        .cartesian_product(DIRECTIONS)
+        .filter(|&((i, j), d)| is_xmas(&puzzle, i, j, d))
+        .count()
 }
 
 fn get_x(puzzle: &Vec<Vec<char>>, i: usize, j: usize) -> [char; 5] {
