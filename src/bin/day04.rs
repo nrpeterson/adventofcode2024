@@ -107,3 +107,30 @@ fn part2(input: &str) -> usize {
 }
 
 build_main!("day04.txt", "Part 1" => part1, "Part 2" => part2);
+
+#[cfg(test)]
+mod tests {
+    use super::{part1, part2};
+
+    const TEST_INPUT: &str = "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX";
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(TEST_INPUT), 18);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(TEST_INPUT), 9);
+    }
+}
+
