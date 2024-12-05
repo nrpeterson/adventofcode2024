@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use nom::{IResult};
 use nom::character::complete::{digit1, newline, space1};
 use nom::combinator::map_res;
@@ -22,37 +23,39 @@ fn part1(input: &str) -> usize {
         .sum()
 }
 
+fn condensed(v: Vec<usize>) -> impl Iterator<Item=(usize, usize)> {
+    v.into_iter().map(|c| (c, 1))
+        .coalesce(|(a, a_count), (b, b_count)| {
+            if a == b { Ok((a, a_count + b_count)) } else { Err(((a, a_count), (b, b_count))) }
+        })
+}
+
 fn part2(input: &str) -> usize {
     let (mut l, mut r) = parse_input(input);
     l.sort();
     r.sort();
 
+    let mut l_merged = condensed(l);
+    let mut r_merged = condensed(r);
+
+    let mut l_cur = l_merged.next();
+    let mut r_cur = r_merged.next();
+
     let mut result = 0;
 
-    let mut i = 0;
-    let mut j = 0;
-
-    while i < l.len() && j < r.len() {
-        if l[i] < r[j] {
-            i += 1;
+    while let (Some((x, x_count)), Some((y, y_count))) = (l_cur, r_cur) {
+        if x < y {
+            l_cur = l_merged.next();
         }
-        else if l[i] > r[j] {
-            j += 1;
+        else if x > y {
+            r_cur = r_merged.next();
         }
         else {
-            let elem = l[i];
-            let mut l_count = 0;
-            while i < l.len() && l[i] == elem {
-                l_count += 1;
-                i += 1;
-            }
-            let mut r_count = 0;
-            while j < r.len() && r[j] == elem {
-                r_count += 1;
-                j += 1;
-            }
-            result += elem * l_count * r_count;
+            result += x * x_count * y_count;
+            l_cur = l_merged.next();
+            r_cur = r_merged.next();
         }
+
     }
 
     result
