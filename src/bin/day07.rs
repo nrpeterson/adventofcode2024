@@ -83,3 +83,28 @@ fn part2(input: &str) -> u64 {
 }
 
 build_main!("day07.txt", "Part 1" => part1, "Part 2" => part2);
+
+#[cfg(test)]
+mod tests {
+    use super::{part1, part2};
+
+    const TEST_INPUT: &str = "190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20";
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(TEST_INPUT), 3749);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(TEST_INPUT), 11387);
+    }
+}
