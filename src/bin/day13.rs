@@ -125,7 +125,7 @@ impl DiophantineSols {
 
     fn nonneg_min_x(&self) -> Option<(isize, isize)> {
         // We'll only handle the case relevant to this problem, where we solve ax+by=c and
-        // a, b, c > 0.  This means that u and v will have opposite signs (and we've normalized
+        // a, b, c > 0.  This means that u and v will have the same signs (and we've normalized
         // to u > 0).
         assert!(self.u > 0 && self.v > 0);
 
@@ -158,7 +158,7 @@ impl DiophantineSols {
 
     fn nonneg_min_y(&self) -> Option<(isize, isize)> {
         // We'll only handle the case relevant to this problem, where we solve ax+by=c and
-        // a, b, c > 0.  This means that u and v will have opposite signs (and we've normalized
+        // a, b, c > 0.  This means that u and v will have the same signs (and we've normalized
         // to u > 0).
         assert!(self.u > 0 && self.v > 0);
 
