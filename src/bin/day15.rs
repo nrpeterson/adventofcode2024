@@ -1,14 +1,16 @@
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::ops::{Index, IndexMut};
 use itertools::Itertools;
 use adventofcode2024::build_main;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-enum Contents { Empty, Box, Wall, Robot }
+enum Contents { Empty, Box, BoxLeft, BoxRight, Wall, Robot }
+use crate::Contents::*;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Direction { Up, Down, Left, Right }
 use Direction::*;
-use crate::Contents::{Empty, Robot, Box, Wall};
+
 
 #[derive(Debug)]
 struct Level {
@@ -58,36 +60,75 @@ impl IndexMut<(usize, usize)> for Level {
 }
 
 impl Level {
+    fn expand(self) -> Level {
+        let board: Vec<Vec<Contents>> = self.board.into_iter()
+            .map(|row| {
+                row.into_iter().flat_map(|contents| {
+                    match contents {
+                        Empty => vec![Empty, Empty],
+                        Box => vec![BoxLeft, BoxRight],
+                        Wall => vec![Wall, Wall],
+                        Robot => vec![Robot, Empty],
+                        _ => panic!("Can't expand this")
+                    }
+                }).collect()
+            })
+            .collect();
+
+        let robot_pos = (self.robot_pos.0, 2 * self.robot_pos.1);
+        let rows = self.rows;
+        let cols = 2 * self.cols;
+
+        Level { rows, cols, board, robot_pos }
+    }
+
     fn apply_move(&mut self, direction: Direction) -> Option<(usize, usize)> {
-        let cur_space = self.robot_pos;
-        let next_space = self.next_pos(self.robot_pos, direction)?;
+        let mut updates = HashMap::new();
+        let mut queue = VecDeque::new();
+        let mut seen = HashSet::new();
 
-        if self[next_space] == Empty {
-            self[cur_space] = Empty;
-            self[next_space] = Robot;
-            self.robot_pos = next_space;
-            return Some(next_space)
-        }
+        let robot_new_space = self.next_pos(self.robot_pos, direction)?;
+        queue.push_back(self.robot_pos);
+        seen.insert(self.robot_pos);
 
-        let mut last_space_opt = Some(next_space);
-        while let Some(last_space) = last_space_opt {
-            if self[last_space] != Box {
-                break
+        while let Some(cur_pos) = queue.pop_front() {
+            let cur_type = self[cur_pos];
+
+            if cur_type == Wall {
+                return None
             }
-            last_space_opt = self.next_pos(last_space, direction);
-        }
-        let last_space = last_space_opt?;
 
-        if self[last_space] == Wall {
-            None
+            if cur_type == Empty {
+                continue
+            }
+
+            let new_pos = self.next_pos(cur_pos, direction)?;
+            let mut neighbors = vec![new_pos];
+
+            if cur_type == BoxLeft && (direction == Up || direction == Down) {
+                neighbors.push(self.next_pos(cur_pos, Right)?);
+            }
+            else if cur_type == BoxRight && (direction == Up || direction == Down) {
+                neighbors.push(self.next_pos(cur_pos, Left)?);
+            }
+
+            neighbors.into_iter().for_each(|n| {
+                if !seen.contains(&n) {
+                    seen.insert(n);
+                    queue.push_back(n);
+                }
+            });
+
+            updates.insert(new_pos, cur_type);
+            updates.entry(cur_pos).or_insert(Empty);
         }
-        else {
-            self[cur_space] = Empty;
-            self[next_space] = Robot;
-            self[last_space] = Box;
-            self.robot_pos = next_space;
-            Some(next_space)
-        }
+
+        updates.into_iter().for_each(|(k, v)| {
+            self[k] = v;
+        });
+        self.robot_pos = robot_new_space;
+
+        Some(robot_new_space)
     }
 }
 
@@ -162,4 +203,23 @@ fn part1(input: &str) -> usize {
     total
 }
 
-build_main!("day15.txt", "Part 1" => part1);
+fn part2(input: &str) -> usize {
+    let (orig_level, directions) = parse::parse_input(input).unwrap().1;
+
+    let mut level = orig_level.expand();
+
+    for direction in directions {
+        level.apply_move(direction);
+    }
+
+    let mut total = 0;
+    for (i, j) in (0..level.rows).cartesian_product(0..level.cols) {
+        if level[(i, j)] == BoxLeft {
+            total += 100*i + j;
+        }
+    }
+
+    total
+}
+
+build_main!("day15.txt", "Part 1" => part1, "Part 2" => part2);
