@@ -23,40 +23,17 @@ fn parse_input(input: &str) -> IResult<&str, Input> {
 }
 
 fn ways_to_build(target: &String, from: &Vec<String>) -> usize {
-    let mut counts = vec![None; target.len() + 1];
-    counts[0] = Some(1);
-    let mut stack = Vec::new();
-    stack.push(target.len());
+    let mut counts = vec![0; target.len() + 1];
+    counts[target.len()] = 1;
 
-    while let Some(&n) = stack.last() {
-        if counts[n].is_some() {
-            stack.pop();
-            continue
-        }
-
-        let suffixes: Vec<&String> = from.iter()
-            .filter(|&s| target[..n].ends_with(s))
-            .collect();
-
-        let unsat: Vec<&String> = suffixes.iter()
-            .filter(|s| counts[n - s.len()].is_none())
-            .map(|&s| s)
-            .collect();
-
-        if unsat.is_empty() {
-            let result = suffixes.iter()
-                .map(|s| counts[n - s.len()].unwrap())
-                .sum();
-
-            counts[n] = Some(result);
-            stack.pop();
-        }
-        else {
-            unsat.iter().for_each(|&s| stack.push(n - s.len()));
-        }
+    for n in (0..target.len()).rev() {
+        counts[n] = from.iter()
+            .filter(|&s| target[n..].starts_with(s))
+            .map(|s| counts[n + s.len()])
+            .sum();
     }
 
-    counts[target.len()].unwrap()
+    counts[0]
 }
 
 fn part1(input: &str) -> usize {
