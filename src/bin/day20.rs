@@ -163,9 +163,11 @@ fn part2(input: &str) -> Result<usize, String> {
     let honest = from_start[maze.end.0][maze.end.1];
 
     let result = (0..maze.cols).cartesian_product(0..maze.rows)
-        .filter(|&p| maze[p] == Track)
+        .filter(|&p| maze[p] == Track && from_start[p.0][p.1] < honest)
         .flat_map(|p| {
-            maze.tracks_in_radius(p, 20).into_iter().map(move |p0| (p, p0))
+            maze.tracks_in_radius(p, 20).into_iter()
+                .filter(|&(i, j)| to_end[i][j] < honest)
+                .map(move |p0| (p, p0))
         })
         .map(|((i0, j0), (i1, j1))| {
             let dist = i0.abs_diff(i1) + j0.abs_diff(j1);
