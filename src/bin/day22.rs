@@ -27,9 +27,7 @@ impl Iterator for SecretNumber {
     }
 }
 
-type FourDiffs = (isize, isize, isize, isize);
-
-fn to_index(f: FourDiffs) -> usize {
+fn to_index(f: (isize, isize, isize, isize)) -> usize {
     let (a, b, c, d) = f;
     [a, b, c, d].map(|x| (x + 9) as usize)
         .iter().fold(0, |acc, &next| 19*acc + next)
